@@ -15,7 +15,8 @@ async def generate_code_from_spec(spec: ProjectSpec, out_dir: Path) -> None:
 
     system_msg = (
         "You are a senior developer. Generate a complete project in "
-        f"{spec.language} from this spec: {spec.dict()}"
+        f"{spec.language} from this spec. Include FastAPI if applicable. "
+        "Make sure to always include an OpenAPI-compliant `/docs`, `/ping`, and `/openapi.json` endpoint."
     )
     prompt = (
         f"Project Description: {spec.description}\n"
