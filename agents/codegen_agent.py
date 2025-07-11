@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from openai import AsyncOpenAI
 from zerodev_ai.models.spec_model import ProjectSpec
 
-client = AsyncOpenAI()
+client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 async def generate_code_from_spec(spec: ProjectSpec, out_dir: Path) -> None:
