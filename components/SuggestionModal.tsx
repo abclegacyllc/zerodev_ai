@@ -13,13 +13,15 @@ interface SuggestionModalProps {
   onClose: () => void;
   suggestions: Suggestion[];
   onApply: (value: string) => void;
+  originalPrompt: string;
 }
 
 export default function SuggestionModal({
   isOpen,
   onClose,
   suggestions,
-  onApply
+  onApply,
+  originalPrompt
 }: SuggestionModalProps) {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<Record<number, string>>({});
@@ -30,10 +32,31 @@ export default function SuggestionModal({
     setTimeout(() => setCopiedIndex(null), 1500);
   };
 
-  const sendFeedback = (idx: number, type: "up" | "down") => {
-    // Placeholder — log or API call
-    setFeedback((prev) => ({ ...prev, [idx]: type }));
-    console.log(`Feedback for suggestion ${idx}: ${type}`);
+  const sendFeedback = async (idx: number, type: "up" | "down", s: Suggestion) => {
+    if (feedback[idx]) return;
+
+    try {
+      const res = await fetch("/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: "demo_user",
+          feedback: type,
+          suggested_prompt: s.suggested_prompt,
+          original_prompt: originalPrompt,
+          index: idx
+        }),
+      });
+
+      if (res.ok) {
+        setFeedback((prev) => ({ ...prev, [idx]: type }));
+        console.log("✅ Feedback sent:", type, idx);
+      } else {
+        console.error("❌ Feedback failed");
+      }
+    } catch (err) {
+      console.error("⚠️ Feedback error:", err);
+    }
   };
 
   if (!isOpen) return null;
@@ -85,7 +108,7 @@ export default function SuggestionModal({
 
                 <div className="flex items-center gap-1 ml-auto text-sm">
                   <button
-                    onClick={() => sendFeedback(idx, "up")}
+                    onClick={() => sendFeedback(idx, "up", s)}
                     disabled={feedback[idx] === "up"}
                     className={`hover:text-green-600 ${
                       feedback[idx] === "up" ? "text-green-600 font-bold" : "text-gray-500"
@@ -94,7 +117,7 @@ export default function SuggestionModal({
                     👍
                   </button>
                   <button
-                    onClick={() => sendFeedback(idx, "down")}
+                    onClick={() => sendFeedback(idx, "down", s)}
                     disabled={feedback[idx] === "down"}
                     className={`hover:text-red-600 ${
                       feedback[idx] === "down" ? "text-red-600 font-bold" : "text-gray-500"
