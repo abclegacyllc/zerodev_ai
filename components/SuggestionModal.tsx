@@ -5,6 +5,7 @@ import React from "react";
 type Suggestion = {
   suggested_prompt: string;
   confidence: number;
+  explanation?: string;
 };
 
 interface SuggestionModalProps {
@@ -38,6 +39,13 @@ export default function SuggestionModal({
               }}
             >
               <p className="text-sm text-gray-800 mb-1">{s.suggested_prompt}</p>
+
+              {s.explanation && (
+                <p className="text-xs text-gray-600 italic mb-1">
+                  💡 {s.explanation}
+                </p>
+              )}
+
               <div className="w-full bg-gray-200 h-2 rounded">
                 <div
                   className="h-2 bg-green-500 rounded"
