@@ -1,15 +1,22 @@
 """FastAPI service that converts a plain-language prompt into
 structured project specs (JSON) using OpenAI Chat Completions."""
+
 from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from openai import AsyncOpenAI
 
+# ✅ Import other API routers
+from prompt_api.analyze import router as analyze_router
+from prompt_api.suggest import router as suggest_router
+from prompt_api.feedback import router as feedback_router
+
 app = FastAPI(title="ZeroDev Prompt Intake API", version="0.1.0")
 client = AsyncOpenAI()
 
 
+# ✅ Route: Simple prompt → JSON spec (gpt-4o-mini)
 class PromptRequest(BaseModel):
     prompt: str = Field(..., example="Build me a Telegram bot that echoes messages.")
 
@@ -21,10 +28,10 @@ class ProjectSpec(BaseModel):
 
 
 @app.post("/parse", response_model=ProjectSpec)
-async def parse_prompt(req: PromptRequest) -> ProjectSpec:  # type: ignore[override]
+async def parse_prompt(req: PromptRequest) -> ProjectSpec:
     try:
         completion = await client.chat.completions.create(
-            model="gpt-4o-mini",  # cheaper, adjust as needed
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
@@ -44,7 +51,12 @@ async def parse_prompt(req: PromptRequest) -> ProjectSpec:  # type: ignore[overr
                 },
             },
         )
-        # The model returns JSON string → Pydantic will parse
-        return ProjectSpec.model_validate_json(completion.choices[0].message.content)  # type: ignore[arg-type]
-    except Exception as exc:  # broad catch for MVP
+        return ProjectSpec.model_validate_json(completion.choices[0].message.content)
+    except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+# ✅ Mount other routers
+app.include_router(analyze_router)
+app.include_router(suggest_router)
+app.include_router(feedback_router)
