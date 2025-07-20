@@ -1,37 +1,89 @@
-import fs from 'fs'
-import path from 'path'
-import { Card, CardContent } from '@/components/ui/card'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Button } from '@/components/ui/button'
+'use client'
+
+import { useState } from 'react'
+
+interface Suggestion {
+  suggested_prompt: string
+  confidence: number
+  explanation: string
+}
 
 export default function Dashboard() {
-  const projectDir = path.join(process.cwd(), 'projects')
-  const projects = fs.existsSync(projectDir)
-    ? fs.readdirSync(projectDir).filter(name => fs.statSync(path.join(projectDir, name)).isDirectory())
-    : []
+  const [prompt, setPrompt] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [error, setError] = useState('')
+
+  const handleSubmit = async () => {
+    setLoading(true)
+    setSuggestions([])
+    setError('')
+
+    try {
+      const res = await fetch('/suggest_prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          role: 'guest',
+          user_id: 'web-client'
+        })
+      })
+
+      if (!res.ok) {
+        throw new Error(`Server error: ${res.status}`)
+      }
+
+      const data = await res.json()
+      setSuggestions(data.suggestions || [])
+    } catch (err: any) {
+      setError(err.message || 'Unknown error')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <main className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">🧠 ZeroDev Projects</h1>
-      {projects.length === 0 ? (
-        <p className="text-muted-foreground">No projects found in /projects</p>
-      ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map(name => {
-            const logPath = path.join(projectDir, name, 'codegen.log')
-            const log = fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf-8') : 'No log found.'
-            return (
-              <Card key={name}>
-                <CardContent className="p-4 space-y-2">
-                  <h2 className="font-semibold text-lg">{name}</h2>
-                  <ScrollArea className="h-40 border rounded p-2 text-sm">
-                    <pre className="whitespace-pre-wrap">{log.slice(0, 1500)}</pre>
-                  </ScrollArea>
-                  <Button variant="secondary" size="sm">View Full Log</Button>
-                </CardContent>
-              </Card>
-            )
-          })}
+    <main className="p-6 space-y-6 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold">🧠 ZeroDev Prompt Tester</h1>
+
+      {/* Prompt input */}
+      <div className="space-y-4">
+        <textarea
+          className="w-full p-3 border rounded text-sm"
+          rows={5}
+          placeholder="Enter your prompt here..."
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+        />
+
+        <button
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          onClick={handleSubmit}
+          disabled={loading || !prompt.trim()}
+        >
+          {loading ? 'Thinking...' : 'Send to AI'}
+        </button>
+      </div>
+
+      {/* Error display */}
+      {error && <p className="text-red-600 text-sm mt-2">❌ {error}</p>}
+
+      {/* Suggestion results */}
+      {suggestions.length > 0 && (
+        <div className="space-y-4 mt-6">
+          <h2 className="text-lg font-semibold">💡 Suggestions:</h2>
+          {suggestions.map((sug, i) => (
+            <div key={i} className="border rounded p-3 bg-white shadow-sm">
+              <p className="font-medium">👉 {sug.suggested_prompt}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                💬 {sug.explanation}
+              </p>
+              <p className="text-xs text-right text-gray-400">
+                Confidence: {Math.round(sug.confidence * 100)}%
+              </p>
+            </div>
+          ))}
         </div>
       )}
     </main>
