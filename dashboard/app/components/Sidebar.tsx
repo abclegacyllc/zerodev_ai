@@ -8,22 +8,22 @@ import clsx from "clsx";
 const navLinks = [
   {
     label: "Prompt",
-    href: "/prompt", // ✅ FIXED
+    href: "/prompt",
     icon: <Home size={22} />,
   },
   {
     label: "Feedback",
-    href: "/feedback", // ✅ FIXED
+    href: "/feedback",
     icon: <MessageSquare size={22} />,
   },
   {
     label: "Settings",
-    href: "/settings", // ✅ FIXED
+    href: "/settings",
     icon: <Settings size={22} />,
   },
   {
     label: "Deploy",
-    href: "/deploy", // ✅ FIXED
+    href: "/deploy",
     icon: <Rocket size={22} />,
   },
 ];
@@ -39,14 +39,16 @@ export default function Sidebar() {
         "border-r border-zinc-800 shadow-xl"
       )}
     >
-      <div className="flex items-center gap-2 px-6 py-6">
+      {/* ✅ Branded Project Header */}
+      <div className="flex flex-col px-6 py-6">
         <span className="text-xl font-bold tracking-tight text-white">
-          ZeroDev
+          ZeroDev <span className="text-emerald-400">V2</span>
         </span>
-        <span className="ml-2 rounded-lg bg-zinc-800 px-2 py-0.5 text-xs font-semibold text-emerald-400">
-          AI
+        <span className="text-xs text-zinc-400">
+          powered by <strong>ABC LEGACY LLC</strong>
         </span>
       </div>
+
       <nav className="flex-1 flex flex-col gap-2 px-3 mt-2">
         {navLinks.map((link) => (
           <SidebarLink
@@ -58,9 +60,10 @@ export default function Sidebar() {
           />
         ))}
       </nav>
+
       <div className="mt-auto px-6 pb-6 flex flex-col gap-2">
         <span className="text-xs text-zinc-500">
-          ZeroDev v2.0.0 &mdash; by ABC LEGACY LLC
+          v2.0.0 &mdash; ABC LEGACY LLC
         </span>
       </div>
     </aside>
