@@ -1,4 +1,5 @@
 // components/Sidebar.tsx
+
 import { Home, MessageSquare, Settings, Rocket, Users } from "lucide-react";
 import SidebarLink from "./SidebarLink";
 import { usePathname } from "next/navigation";
@@ -39,8 +40,8 @@ export default function Sidebar() {
         "border-r border-zinc-800 shadow-xl"
       )}
     >
+      {/* Logo yoki brend qismini istalgancha o‘zgartirishingiz mumkin */}
       <div className="flex items-center gap-2 px-6 py-6">
-        {/* You can swap this for your logo */}
         <span className="text-xl font-bold tracking-tight text-white">
           ZeroDev
         </span>
