@@ -1,6 +1,7 @@
-// dashboard/app/deploy/page.tsx
+'use client';
 
-import DeployStatusCard from "@/components/DeployStatusCard";
+// dashboard/app/deploy/page.tsx
+import DeployStatusCard from '../components/DeployStatusCard';
 
 export const metadata = {
   title: "Deploy | ZeroDev AI",
