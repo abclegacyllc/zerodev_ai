@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import AuroraBackground from './components/AuroraBackground'
+import { useToast } from './components/ToastContext'
 
 interface Suggestion {
   suggested_prompt: string
@@ -22,10 +23,14 @@ export default function Dashboard() {
   const [feedbackComment, setFeedbackComment] = useState('')
   const [feedbackStatus, setFeedbackStatus] = useState('')
 
+  // F06: Toast hook
+  const { showToast } = useToast()
+
   const handleSubmit = async () => {
     setLoading(true)
     setSuggestions([])
     setError('')
+    showToast('Thinking...', 'info')
 
     try {
       const res = await fetch('/suggest_prompt', {
@@ -41,8 +46,10 @@ export default function Dashboard() {
       if (!res.ok) throw new Error(`Server error: ${res.status}`)
       const data = await res.json()
       setSuggestions(data.suggestions || [])
+      showToast('AI suggestions received!', 'success')
     } catch (err: any) {
       setError(err.message || 'Unknown error')
+      showToast('Error fetching suggestions!', 'error')
     } finally {
       setLoading(false)
     }
@@ -163,6 +170,7 @@ export default function Dashboard() {
 
                       if (!res.ok) throw new Error('Feedback failed')
                       setFeedbackStatus('sent')
+                      showToast('Thank you for your feedback!', 'success')
                       setTimeout(() => {
                         setFeedbackOpen(false)
                         setFeedbackComment('')
@@ -170,6 +178,7 @@ export default function Dashboard() {
                       }, 1000)
                     } catch {
                       setFeedbackStatus('error')
+                      showToast('Error submitting feedback!', 'error')
                     }
                   }}
                 >
