@@ -1,6 +1,6 @@
 // components/Sidebar.tsx
 
-import { Home, MessageSquare, Settings, Rocket, Users } from "lucide-react";
+import { Home, MessageSquare, Settings, Rocket } from "lucide-react";
 import SidebarLink from "./SidebarLink";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
@@ -8,25 +8,24 @@ import clsx from "clsx";
 const navLinks = [
   {
     label: "Prompt",
-    href: "/dashboard/app",
+    href: "/prompt", // ✅ FIXED
     icon: <Home size={22} />,
   },
   {
     label: "Feedback",
-    href: "/dashboard/app/feedback",
+    href: "/feedback", // ✅ FIXED
     icon: <MessageSquare size={22} />,
   },
   {
     label: "Settings",
-    href: "/dashboard/app/settings",
+    href: "/settings", // ✅ FIXED
     icon: <Settings size={22} />,
   },
   {
     label: "Deploy",
-    href: "/dashboard/app/deploy",
+    href: "/deploy", // ✅ FIXED
     icon: <Rocket size={22} />,
   },
-  // { label: "Admin", href: "/dashboard/app/admin", icon: <Users size={22} /> },
 ];
 
 export default function Sidebar() {
@@ -40,7 +39,6 @@ export default function Sidebar() {
         "border-r border-zinc-800 shadow-xl"
       )}
     >
-      {/* Logo yoki brend qismini istalgancha o‘zgartirishingiz mumkin */}
       <div className="flex items-center gap-2 px-6 py-6">
         <span className="text-xl font-bold tracking-tight text-white">
           ZeroDev
@@ -61,9 +59,8 @@ export default function Sidebar() {
         ))}
       </nav>
       <div className="mt-auto px-6 pb-6 flex flex-col gap-2">
-        {/* Future: ThemeToggle, User profile, version info, etc. */}
         <span className="text-xs text-zinc-500">
-          v2.0.0 &mdash; ABC LEGACY LLC
+          ZeroDev v2.0.0 &mdash; by ABC LEGACY LLC
         </span>
       </div>
     </aside>
