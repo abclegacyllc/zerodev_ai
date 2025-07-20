@@ -6,3 +6,4 @@ aiofiles
 pyyaml
 pytest
 rich         # optional CLI beautification
+openai>=1.0.0
