@@ -1,6 +1,8 @@
 fastapi
-uvicorn[standard]
-openai
+uvicorn
 pydantic
-langchain
-PyGithub
+httpx
+aiofiles
+pyyaml
+pytest
+rich         # optional CLI beautification
