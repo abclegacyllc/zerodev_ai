@@ -1,7 +1,5 @@
-// dashboard/app/settings/page.tsx
-
-import SettingsPanel from "@/components/SettingsPanel";
-import ThemeToggle from "@/components/ThemeToggle";
+import SettingsPanel from "@/app/components/SettingsPanel";
+import ThemeToggle from "@/app/components/ThemeToggle";
 
 export const metadata = {
   title: "Settings | ZeroDev AI",
