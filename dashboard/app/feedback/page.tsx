@@ -1,7 +1,8 @@
-// dashboard/app/feedback/page.tsx
+'use client';
 
-import AdminFeedbackTable from "@/components/AdminFeedbackTable";
-import FeedbackModal from "@/components/FeedbackModal";
+// dashboard/app/feedback/page.tsx
+import AdminFeedbackTable from '../components/AdminFeedbackTable';
+import FeedbackModal from '../components/FeedbackModal';
 
 export const metadata = {
   title: "Feedback | ZeroDev AI",
@@ -18,7 +19,6 @@ export default function FeedbackPage() {
       <div className="rounded-2xl bg-zinc-900/70 p-6 shadow-lg border border-zinc-800">
         <AdminFeedbackTable />
       </div>
-      {/* FeedbackModal test/button for manual feedback */}
       <div className="flex justify-end">
         <FeedbackModal />
       </div>
