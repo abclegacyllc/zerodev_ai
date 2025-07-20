@@ -2,34 +2,33 @@
 
 import { useState } from 'react'
 import AuroraBackground from './components/AuroraBackground'
+import FancyPromptInput from './components/FancyPromptInput'
+import SuggestionList, { Suggestion } from './components/SuggestionList'
 import { useToast } from './components/ToastContext'
-
-interface Suggestion {
-  suggested_prompt: string
-  confidence: number
-  explanation: string
-}
 
 export default function Dashboard() {
   const [prompt, setPrompt] = useState('')
   const [loading, setLoading] = useState(false)
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
-  const [error, setError] = useState('')
+  const [likedIdx, setLikedIdx] = useState<number | null>(null)
+  const [dislikedIdx, setDislikedIdx] = useState<number | null>(null)
+  const [loadingIdx, setLoadingIdx] = useState<number | null>(null)
 
-  // F03: Feedback modal states
+  // Feedback modal (bonus: keyingi step uchun extensible)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
-  const [selectedPrompt, setSelectedPrompt] = useState<Suggestion | null>(null)
+  const [feedbackIdx, setFeedbackIdx] = useState<number | null>(null)
   const [feedbackScore, setFeedbackScore] = useState<number | null>(null)
   const [feedbackComment, setFeedbackComment] = useState('')
-  const [feedbackStatus, setFeedbackStatus] = useState('')
 
-  // F06: Toast hook
   const { showToast } = useToast()
 
-  const handleSubmit = async () => {
+  // Prompt yuborish
+  const handlePromptSubmit = async () => {
+    if (!prompt.trim()) return
     setLoading(true)
     setSuggestions([])
-    setError('')
+    setLikedIdx(null)
+    setDislikedIdx(null)
     showToast('Thinking...', 'info')
 
     try {
@@ -42,94 +41,91 @@ export default function Dashboard() {
           user_id: 'web-client'
         })
       })
-
       if (!res.ok) throw new Error(`Server error: ${res.status}`)
       const data = await res.json()
       setSuggestions(data.suggestions || [])
       showToast('AI suggestions received!', 'success')
     } catch (err: any) {
-      setError(err.message || 'Unknown error')
       showToast('Error fetching suggestions!', 'error')
     } finally {
       setLoading(false)
     }
   }
 
+  // Like/Dislike harakati (modal ochish uchun)
+  const handleLike = (idx: number) => {
+    setLikedIdx(idx)
+    setDislikedIdx(null)
+    setFeedbackIdx(idx)
+    setFeedbackScore(1)
+    setFeedbackOpen(true)
+  }
+
+  const handleDislike = (idx: number) => {
+    setDislikedIdx(idx)
+    setLikedIdx(null)
+    setFeedbackIdx(idx)
+    setFeedbackScore(0)
+    setFeedbackOpen(true)
+  }
+
+  // Feedback yuborish
+  const handleFeedbackSubmit = async () => {
+    if (feedbackIdx === null || feedbackScore === null) return
+    setLoadingIdx(feedbackIdx)
+    try {
+      const res = await fetch('/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: suggestions[feedbackIdx]?.suggested_prompt,
+          user_id: 'web-client',
+          score: feedbackScore,
+          comment: feedbackComment
+        })
+      })
+      if (!res.ok) throw new Error('Feedback failed')
+      showToast('Thank you for your feedback!', 'success')
+      setTimeout(() => {
+        setFeedbackOpen(false)
+        setFeedbackComment('')
+        setLoadingIdx(null)
+      }, 1000)
+    } catch {
+      showToast('Error submitting feedback!', 'error')
+      setLoadingIdx(null)
+    }
+  }
+
   return (
     <>
       <AuroraBackground />
-
       <main className="relative z-10 p-6 space-y-6 max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold text-white dark:text-blue-200 drop-shadow-md">🧠 ZeroDev Prompt Tester</h1>
+        <h1 className="text-2xl font-bold text-white dark:text-blue-200 drop-shadow-md">
+          🧠 ZeroDev Prompt Tester
+        </h1>
 
-        {/* Prompt input */}
-        <div className="space-y-4">
-          <textarea
-            className="w-full p-3 border rounded text-sm bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-inner focus:ring focus:ring-blue-300 dark:text-blue-100 dark:placeholder:text-gray-400"
-            rows={5}
-            placeholder="Enter your prompt here..."
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-          />
-          <button
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900 transition"
-            onClick={handleSubmit}
-            disabled={loading || !prompt.trim()}
-          >
-            {loading ? 'Thinking...' : 'Send to AI'}
-          </button>
-        </div>
+        {/* Modular, animated prompt input */}
+        <FancyPromptInput
+          value={prompt}
+          onChange={setPrompt}
+          onSubmit={handlePromptSubmit}
+          loading={loading}
+          placeholder="Describe your idea, question, or code problem..."
+        />
 
-        {/* Error display */}
-        {error && <p className="text-red-600 dark:text-red-400 text-sm mt-2">❌ {error}</p>}
+        {/* AI Suggestions — modular card list */}
+        <SuggestionList
+          suggestions={suggestions}
+          onLike={handleLike}
+          onDislike={handleDislike}
+          likedIdx={likedIdx}
+          dislikedIdx={dislikedIdx}
+          loadingIdx={loadingIdx}
+        />
 
-        {/* Suggestion results */}
-        {suggestions.length > 0 && (
-          <div className="space-y-4 mt-6">
-            <h2 className="text-lg font-semibold text-white dark:text-blue-200 drop-shadow">💡 Suggestions:</h2>
-            {suggestions.map((sug, i) => (
-              <div
-                key={i}
-                className="border rounded p-4 bg-white/80 dark:bg-gray-800/70 backdrop-blur-md shadow-lg dark:shadow-blue-900 space-y-2 transition hover:scale-[1.01]"
-              >
-                <p className="font-medium dark:text-blue-100">👉 {sug.suggested_prompt}</p>
-                <p className="text-sm text-muted-foreground mt-1 dark:text-gray-400">
-                  💬 {sug.explanation}
-                </p>
-                <p className="text-xs text-right text-gray-400 dark:text-gray-500">
-                  Confidence: {Math.round(sug.confidence * 100)}%
-                </p>
-
-                {/* F03: Feedback buttons */}
-                <div className="flex gap-2 justify-end pt-2">
-                  <button
-                    className="text-green-600 dark:text-green-400 hover:scale-110 transition"
-                    onClick={() => {
-                      setSelectedPrompt(sug)
-                      setFeedbackScore(1)
-                      setFeedbackOpen(true)
-                    }}
-                  >
-                    👍
-                  </button>
-                  <button
-                    className="text-red-500 dark:text-red-400 hover:scale-110 transition"
-                    onClick={() => {
-                      setSelectedPrompt(sug)
-                      setFeedbackScore(0)
-                      setFeedbackOpen(true)
-                    }}
-                  >
-                    👎
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* F03: Feedback modal */}
-        {feedbackOpen && selectedPrompt && (
+        {/* Feedback modal */}
+        {feedbackOpen && feedbackIdx !== null && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white dark:bg-gray-900 rounded-xl p-6 w-full max-w-md space-y-4 shadow-lg dark:shadow-blue-900">
               <h3 className="text-lg font-semibold dark:text-blue-100">
@@ -154,47 +150,12 @@ export default function Dashboard() {
                 </button>
                 <button
                   className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900 text-sm"
-                  onClick={async () => {
-                    setFeedbackStatus('sending')
-                    try {
-                      const res = await fetch('/feedback', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          prompt: selectedPrompt?.suggested_prompt,
-                          user_id: 'web-client',
-                          score: feedbackScore,
-                          comment: feedbackComment
-                        })
-                      })
-
-                      if (!res.ok) throw new Error('Feedback failed')
-                      setFeedbackStatus('sent')
-                      showToast('Thank you for your feedback!', 'success')
-                      setTimeout(() => {
-                        setFeedbackOpen(false)
-                        setFeedbackComment('')
-                        setFeedbackStatus('')
-                      }, 1000)
-                    } catch {
-                      setFeedbackStatus('error')
-                      showToast('Error submitting feedback!', 'error')
-                    }
-                  }}
+                  onClick={handleFeedbackSubmit}
+                  disabled={loadingIdx === feedbackIdx}
                 >
-                  {feedbackStatus === 'sending' ? 'Sending...' : 'Submit Feedback'}
+                  {loadingIdx === feedbackIdx ? 'Sending...' : 'Submit Feedback'}
                 </button>
               </div>
-              {feedbackStatus === 'sent' && (
-                <p className="text-green-600 dark:text-green-400 text-sm">
-                  ✅ Thank you for your feedback!
-                </p>
-              )}
-              {feedbackStatus === 'error' && (
-                <p className="text-red-600 dark:text-red-400 text-sm">
-                  ❌ Error submitting feedback.
-                </p>
-              )}
             </div>
           </div>
         )}
