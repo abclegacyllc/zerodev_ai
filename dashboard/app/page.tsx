@@ -14,6 +14,13 @@ export default function Dashboard() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [error, setError] = useState('')
 
+  // F03: Feedback modal states
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [selectedPrompt, setSelectedPrompt] = useState<Suggestion | null>(null)
+  const [feedbackScore, setFeedbackScore] = useState<number | null>(null)
+  const [feedbackComment, setFeedbackComment] = useState('')
+  const [feedbackStatus, setFeedbackStatus] = useState('')
+
   const handleSubmit = async () => {
     setLoading(true)
     setSuggestions([])
@@ -30,10 +37,7 @@ export default function Dashboard() {
         })
       })
 
-      if (!res.ok) {
-        throw new Error(`Server error: ${res.status}`)
-      }
-
+      if (!res.ok) throw new Error(`Server error: ${res.status}`)
       const data = await res.json()
       setSuggestions(data.suggestions || [])
     } catch (err: any) {
@@ -56,7 +60,6 @@ export default function Dashboard() {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
         />
-
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
           onClick={handleSubmit}
@@ -74,7 +77,7 @@ export default function Dashboard() {
         <div className="space-y-4 mt-6">
           <h2 className="text-lg font-semibold">💡 Suggestions:</h2>
           {suggestions.map((sug, i) => (
-            <div key={i} className="border rounded p-3 bg-white shadow-sm">
+            <div key={i} className="border rounded p-3 bg-white shadow-sm space-y-2">
               <p className="font-medium">👉 {sug.suggested_prompt}</p>
               <p className="text-sm text-muted-foreground mt-1">
                 💬 {sug.explanation}
@@ -82,8 +85,93 @@ export default function Dashboard() {
               <p className="text-xs text-right text-gray-400">
                 Confidence: {Math.round(sug.confidence * 100)}%
               </p>
+
+              {/* F03: Feedback buttons */}
+              <div className="flex gap-2 justify-end pt-2">
+                <button
+                  className="text-green-600 hover:scale-105 transition"
+                  onClick={() => {
+                    setSelectedPrompt(sug)
+                    setFeedbackScore(1)
+                    setFeedbackOpen(true)
+                  }}
+                >
+                  👍
+                </button>
+                <button
+                  className="text-red-500 hover:scale-105 transition"
+                  onClick={() => {
+                    setSelectedPrompt(sug)
+                    setFeedbackScore(0)
+                    setFeedbackOpen(true)
+                  }}
+                >
+                  👎
+                </button>
+              </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* F03: Feedback modal */}
+      {feedbackOpen && selectedPrompt && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md space-y-4 shadow-lg">
+            <h3 className="text-lg font-semibold">
+              {feedbackScore === 1 ? '👍 You liked this suggestion' : '👎 You disliked this suggestion'}
+            </h3>
+            <textarea
+              rows={3}
+              className="w-full border rounded p-2 text-sm"
+              placeholder="Add a comment (optional)..."
+              value={feedbackComment}
+              onChange={(e) => setFeedbackComment(e.target.value)}
+            />
+            <div className="flex justify-between items-center pt-2">
+              <button
+                className="text-gray-500 text-sm"
+                onClick={() => {
+                  setFeedbackOpen(false)
+                  setFeedbackComment('')
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 text-sm"
+                onClick={async () => {
+                  setFeedbackStatus('sending')
+                  try {
+                    const res = await fetch('/feedback', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        prompt: selectedPrompt?.suggested_prompt,
+                        user_id: 'web-client',
+                        score: feedbackScore,
+                        comment: feedbackComment
+                      })
+                    })
+
+                    if (!res.ok) throw new Error('Feedback failed')
+                    setFeedbackStatus('sent')
+                    setTimeout(() => {
+                      setFeedbackOpen(false)
+                      setFeedbackComment('')
+                      setFeedbackStatus('')
+                    }, 1000)
+                  } catch {
+                    setFeedbackStatus('error')
+                  }
+                }}
+              >
+                {feedbackStatus === 'sending' ? 'Sending...' : 'Submit Feedback'}
+              </button>
+            </div>
+            {feedbackStatus === 'sent' && <p className="text-green-600 text-sm">✅ Thank you for your feedback!</p>}
+            {feedbackStatus === 'error' && <p className="text-red-600 text-sm">❌ Error submitting feedback.</p>}
+          </div>
         </div>
       )}
     </main>
