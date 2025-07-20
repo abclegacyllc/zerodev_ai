@@ -1,8 +1,6 @@
-// dashboard/app/prompt/page.tsx
-
-import FancyPromptInput from "@/components/FancyPromptInput";
-import SuggestionList from "@/components/SuggestionList";
-import FeedbackModal from "@/components/FeedbackModal";
+import FancyPromptInput from "@/app/components/FancyPromptInput";
+import SuggestionList from "@/app/components/SuggestionList";
+import FeedbackModal from "@/app/components/FeedbackModal";
 
 export const metadata = {
   title: "Prompt | ZeroDev AI",
