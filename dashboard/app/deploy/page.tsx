@@ -1,12 +1,6 @@
 'use client';
 
-// dashboard/app/deploy/page.tsx
 import DeployStatusCard from '../components/DeployStatusCard';
-
-export const metadata = {
-  title: "Deploy | ZeroDev AI",
-  description: "Track deployment progress and status.",
-};
 
 export default function DeployPage() {
   return (
