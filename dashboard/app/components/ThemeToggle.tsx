@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
+import { useEffect, useState } from 'react';
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useTheme();
@@ -20,7 +20,6 @@ export default function ThemeToggle() {
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
     >
       {theme === 'dark' ? (
-        // 🌙 Moon icon
         <svg
           width={24}
           height={24}
@@ -33,7 +32,6 @@ export default function ThemeToggle() {
           <path d="M21 12.79A9 9 0 0111.21 3a7 7 0 108.58 9.79z" />
         </svg>
       ) : (
-        // ☀️ Sun icon
         <svg
           width={24}
           height={24}
