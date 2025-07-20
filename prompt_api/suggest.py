@@ -1,10 +1,17 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional, List
-from openai import OpenAI
+from openai import AsyncOpenAI
+import os
 
 router = APIRouter()
-ai = OpenAI()
+
+# Load API key from .env
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("❌ OPENAI_API_KEY is missing. Please check your .env file.")
+
+ai = AsyncOpenAI(api_key=api_key)
 
 
 class SuggestPromptRequest(BaseModel):
@@ -14,9 +21,6 @@ class SuggestPromptRequest(BaseModel):
 
 
 def get_confidence_score(original: str, suggestion: str) -> float:
-    """
-    Very basic similarity scorer — to be replaced with real AI evaluation later.
-    """
     original = original.lower().strip()
     suggestion = suggestion.lower().strip()
     shared = set(original.split()) & set(suggestion.split())
@@ -25,7 +29,7 @@ def get_confidence_score(original: str, suggestion: str) -> float:
 
 
 @router.post("/suggest_prompt", tags=["AI Suggestions"])
-def suggest_prompt_route(data: SuggestPromptRequest):
+async def suggest_prompt_route(data: SuggestPromptRequest):
     system_msg = (
         "You are a smart AI assistant. "
         "When given an unsafe or unethical software prompt, rewrite it into 3 safe, ethical, and developer-friendly alternatives. "
@@ -35,18 +39,19 @@ def suggest_prompt_route(data: SuggestPromptRequest):
 
     user_msg = f"Rewrite this software prompt in 3 safe and ethical ways:\n{data.prompt}"
 
-    response = ai.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": user_msg}
-        ],
-        temperature=0.4
-    )
+    try:
+        response = await ai.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system_msg},
+                {"role": "user", "content": user_msg}
+            ],
+            temperature=0.4
+        )
+    except Exception as e:
+        return {"error": f"OpenAI API Error: {str(e)}"}
 
     raw_output = response.choices[0].message.content.strip()
-
-    # Clean and split
     lines = [line.strip("•- ").strip() for line in raw_output.split("\n") if line.strip()]
     top_3 = lines[:3] if len(lines) >= 3 else lines
 
