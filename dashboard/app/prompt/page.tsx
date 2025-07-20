@@ -21,7 +21,7 @@ export default function PromptPage() {
         <FancyPromptInput />
       </div>
       <div className="mt-4">
-        <SuggestionList />
+        <SuggestionList suggestions={[]} />
       </div>
       <div className="flex justify-end">
         <FeedbackModal />
