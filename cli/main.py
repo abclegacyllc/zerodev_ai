@@ -4,6 +4,7 @@ Run:
   - `python -m zerodev_ai.cli.main generate <project_path>`
   - `python -m zerodev_ai.cli.main ci_cd <project_path>`
   - `python -m zerodev_ai.cli.main deploy <project_path>`
+  - `python -m zerodev_ai.cli.main rollback <file_path> <version>`
 """
 
 import argparse
@@ -14,6 +15,7 @@ from zerodev_ai.agents.codegen_agent import generate_code_from_spec
 from zerodev_ai.agents.ci_cd_agent import create_ci_cd_files
 from zerodev_ai.agents.deploy_agent import deploy_project
 from zerodev_ai.models.spec_model import ProjectSpec
+from zerodev_ai.version_engine.rollback import rollback_version
 import yaml
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -38,6 +40,11 @@ def _build_parser() -> argparse.ArgumentParser:
     p_deploy.add_argument("--port", type=int, default=8000, help="Host port to expose")
     p_deploy.add_argument("--push", action="store_true", help="Push image to Docker registry")
     p_deploy.add_argument("--no-health", action="store_true", help="Skip health check after deploy")
+
+    # rollback
+    p_rb = sub.add_parser("rollback", help="Rollback a file to a previous version")
+    p_rb.add_argument("file_path", help="Target file to rollback (e.g. agents/ci_cd_agent.py)")
+    p_rb.add_argument("version", help="Version to rollback to (e.g. v1.0.0)")
 
     return parser
 
@@ -69,6 +76,9 @@ def main() -> None:
             push_to_registry=args.push,
             health_check=not args.no_health
         )
+
+    elif args.command == "rollback":
+        rollback_version(args.file_path, args.version)
 
 if __name__ == "__main__":
     main()
