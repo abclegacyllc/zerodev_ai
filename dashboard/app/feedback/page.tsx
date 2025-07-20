@@ -1,5 +1,7 @@
-import AdminFeedbackTable from "@/app/components/AdminFeedbackTable";
-import FeedbackModal from "@/app/components/FeedbackModal";
+// dashboard/app/feedback/page.tsx
+
+import AdminFeedbackTable from "@/components/AdminFeedbackTable";
+import FeedbackModal from "@/components/FeedbackModal";
 
 export const metadata = {
   title: "Feedback | ZeroDev AI",
