@@ -1,14 +1,8 @@
 'use client';
 
-// dashboard/app/prompt/page.tsx
 import FancyPromptInput from '../components/FancyPromptInput';
 import SuggestionList from '../components/SuggestionList';
 import FeedbackModal from '../components/FeedbackModal';
-
-export const metadata = {
-  title: "Prompt | ZeroDev AI",
-  description: "Send prompt and get instant AI-powered responses.",
-};
 
 export default function PromptPage() {
   return (
@@ -21,7 +15,7 @@ export default function PromptPage() {
         <FancyPromptInput />
       </div>
       <div className="mt-4">
-        <SuggestionList suggestions={[]} />
+        <SuggestionList />
       </div>
       <div className="flex justify-end">
         <FeedbackModal />
