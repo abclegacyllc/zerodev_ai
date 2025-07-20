@@ -1,5 +1,7 @@
 // dashboard/app/layout.tsx
 
+"use client";
+
 import './styles/globals.css';
 import ThemeToggle from './components/ThemeToggle';
 import { ToastProvider } from './components/ToastContext';
@@ -20,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="min-h-screen bg-black bg-gradient-to-tr from-[#0f172a] via-[#1e3a8a] to-[#0f172a]">
         <ToastProvider>
-          {/* Topbar */}
+          {/* Topbar (mobile only) */}
           <div className="flex items-center justify-between lg:hidden px-4 py-4">
             <div className="flex items-center gap-2">
               <HamburgerButton onClick={() => setMobileOpen(true)} />
@@ -35,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           {/* Mobile Drawer */}
           <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
-          {/* Main content (mobile, sidebar yopiq holat) */}
+          {/* Main content (mobile, sidebar closed) */}
           <div className="lg:hidden px-4 py-2">{children}</div>
         </ToastProvider>
       </body>
