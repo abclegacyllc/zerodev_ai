@@ -20,9 +20,9 @@ export default function ModelDropdown({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative">
+    <div className="relative select-none">
       <button
-        className="flex items-center gap-1 text-emerald-400 bg-zinc-800 rounded-lg px-3 py-1 font-semibold text-sm hover:bg-zinc-700 transition select-none"
+        className="flex items-center gap-1 text-emerald-400 bg-zinc-800 rounded-lg px-3 py-1 font-semibold text-sm hover:bg-zinc-700 transition"
         onClick={() => setOpen((o) => !o)}
         type="button"
         aria-haspopup="listbox"
@@ -53,7 +53,9 @@ export default function ModelDropdown({
               aria-selected={selected === model.key}
             >
               {model.label}
-              {selected === model.key && <Check size={16} className="ml-auto text-emerald-400" />}
+              {selected === model.key && (
+                <Check size={16} className="ml-auto text-emerald-400" />
+              )}
             </button>
           ))}
         </div>
