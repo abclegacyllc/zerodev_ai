@@ -1,5 +1,7 @@
 // dashboard/app/components/FancyPromptInput.tsx
 
+"use client";
+
 import { useState } from "react";
 import { Send } from "lucide-react";
 import { useToast } from "./ToastContext";
@@ -14,7 +16,6 @@ export default function FancyPromptInput() {
       showToast("Prompt is empty!", "error");
       return;
     }
-    // TODO: AI so‘rovini backendga yuborish yoki mock qilish
     showToast("Prompt submitted! (fake)", "success");
     setPrompt("");
   };
