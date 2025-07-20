@@ -2,13 +2,14 @@
 
 import { UserCircle } from "lucide-react";
 import ModelDropdown from "./ModelDropdown";
+import WorkspaceDropdown from "./WorkspaceDropdown";
 import AuthModal from "./AuthModal";
 import { useState } from "react";
 
 export default function Topbar() {
   const [selectedModel, setSelectedModel] = useState("gpt-4o");
+  const [selectedWorkspace, setSelectedWorkspace] = useState("bolt");
   const [authOpen, setAuthOpen] = useState(false);
-  // Mock user state
   const [user, setUser] = useState<{ name?: string } | null>(null);
 
   return (
@@ -18,10 +19,17 @@ export default function Topbar() {
         bg-gradient-to-tr from-zinc-950/90 via-zinc-900/80 to-zinc-950/80
         border-b border-zinc-800 backdrop-blur-xl shadow-lg px-6"
       >
-        {/* Chap: Logo va model switcher */}
+        {/* Chap: Logo, Workspace va model switcher */}
         <div className="flex items-center gap-3">
           <span className="text-lg font-bold tracking-tight text-white select-none">ZeroDev</span>
-          <ModelDropdown selected={selectedModel} onSelect={setSelectedModel} />
+          <WorkspaceDropdown
+            selected={selectedWorkspace}
+            onSelect={setSelectedWorkspace}
+          />
+          <ModelDropdown
+            selected={selectedModel}
+            onSelect={setSelectedModel}
+          />
         </div>
         {/* O‘ng: User avatar/profil */}
         <div className="flex items-center gap-4">
