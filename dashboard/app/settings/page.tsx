@@ -1,13 +1,7 @@
 'use client';
 
-// dashboard/app/settings/page.tsx
 import SettingsPanel from '../components/SettingsPanel';
 import ThemeToggle from '../components/ThemeToggle';
-
-export const metadata = {
-  title: "Settings | ZeroDev AI",
-  description: "Customize your experience, API keys, and model preferences.",
-};
 
 export default function SettingsPage() {
   return (
