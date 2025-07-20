@@ -1,13 +1,7 @@
 'use client';
 
-// dashboard/app/feedback/page.tsx
 import AdminFeedbackTable from '../components/AdminFeedbackTable';
 import FeedbackModal from '../components/FeedbackModal';
-
-export const metadata = {
-  title: "Feedback | ZeroDev AI",
-  description: "View and analyze user feedback and ratings.",
-};
 
 export default function FeedbackPage() {
   return (
