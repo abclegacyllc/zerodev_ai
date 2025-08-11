@@ -5,27 +5,17 @@ from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from openai import AsyncOpenAI
-
-# ✅ Load environment variables from .env
-from dotenv import load_dotenv
-import os
-
-load_dotenv()  # Automatically load .env file
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key:
-    raise ValueError("❌ OPENAI_API_KEY is missing. Please check your .env file.")
 
 # ✅ Import other API routers
 from prompt_api.analyze import router as analyze_router
 from prompt_api.suggest import router as suggest_router
 from prompt_api.feedback import router as feedback_router
 
+# ✅ Import shared OpenAI client
+from .shared import client
+
 # ✅ Create FastAPI app
 app = FastAPI(title="ZeroDev Prompt Intake API", version="0.1.0")
-
-# ✅ OpenAI client with API key from .env
-client = AsyncOpenAI(api_key=api_key)
 
 
 # ✅ Route: Simple prompt → JSON spec (gpt-4o-mini)

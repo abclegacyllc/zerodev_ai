@@ -5,7 +5,7 @@ import json
 import os
 from pathlib import Path
 from openai import AsyncOpenAI
-from zerodev_ai.models.spec_model import ProjectSpec
+from backend.models.spec_model import ProjectSpec
 
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
