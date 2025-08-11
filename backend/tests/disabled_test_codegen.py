@@ -1,5 +1,5 @@
-from zerodev_ai.agents.codegen_agent import extract_name_from_spec
-from zerodev_ai.models.spec_model import ProjectSpec
+from backend.agents.codegen_agent import extract_name_from_spec
+from backend.models.spec_model import ProjectSpec
 
 def test_extract_name_from_spec():
     spec = ProjectSpec(

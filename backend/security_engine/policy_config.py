@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Dict, Optional
 
-CONFIG_PATH = Path("security_engine/config/policy_config.json")
+CONFIG_PATH = Path(__file__).parent / "policy_config.json"
 
 def load_policy_config(role: Optional[str] = None) -> Dict:
     """

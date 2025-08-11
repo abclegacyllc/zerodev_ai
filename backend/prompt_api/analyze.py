@@ -1,10 +1,16 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
-from typing import Optional
-from security_engine.filters import analyze_prompt
-from security_engine.audit_log import log_violation
+import json
 import time
-import random
+from typing import Optional
+
+from fastapi import APIRouter
+from openai import OpenAIError
+from pydantic import BaseModel
+
+from security_engine.audit_log import log_violation
+from security_engine.filters import analyze_prompt
+
+# Use the shared OpenAI client
+from .shared import client
 
 router = APIRouter()
 
@@ -29,15 +35,41 @@ def classify_prompt_type(prompt: str) -> str:
     return "general"
 
 
-# Dummy suggestions (can be AI-generated in future)
-def get_suggestions(word: str) -> list:
-    suggestions_dict = {
-        "phishing": ["email auth flow", "secure login bot"],
-        "bypass login": ["add forgot-password link", "admin verification"],
-        "ddos": ["traffic load balancer", "rate limiting tool"],
-        "inject": ["input sanitizer", "validation module"]
-    }
-    return suggestions_dict.get(word, [])
+async def get_ai_suggestions(prompt: str, violation: dict) -> list[str]:
+    """Generates helpful suggestions for a flagged prompt using an AI model."""
+    if not client:
+        return []
+
+    keyword = violation.get("word") or violation.get("pattern", "")
+    message = violation.get("message", "")
+
+    try:
+        system_prompt = (
+            "You are an expert security assistant. A user's prompt was flagged. "
+            "Your task is to provide 2-3 safe, alternative suggestions for how the user could "
+            "rephrase their prompt to achieve a similar goal without triggering security filters. "
+            "Return the suggestions as a JSON array of strings in a 'suggestions' key."
+        )
+        user_prompt = (
+            f"The user's prompt was: '{prompt}'\n"
+            f"It was flagged for the following reason: '{message}'\n"
+            f"The keyword/pattern that triggered this was: '{keyword}'\n\n"
+            "Please provide 2-3 safe, alternative suggestions."
+        )
+
+        completion = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            response_format={"type": "json_object"},
+        )
+        response_data = json.loads(completion.choices[0].message.content)
+        return response_data.get("suggestions", [])
+    except (OpenAIError, json.JSONDecodeError) as e:
+        print(f"[⚠️] Could not generate AI suggestions: {e}")
+        return []
 
 
 def get_severity(score: int) -> str:
@@ -49,14 +81,14 @@ def get_severity(score: int) -> str:
 
 
 @router.post("/analyze", tags=["Prompt Filter"])
-def analyze_prompt_route(data: AnalyzePromptRequest):
+async def analyze_prompt_route(data: AnalyzePromptRequest):
     start = time.time()
 
     result = analyze_prompt(data.prompt, role=data.role)
 
-    # Add suggestions and severity to each violation
+    # Add AI-generated suggestions to each violation
     for v in result["violations"]:
-        v["suggestions"] = get_suggestions(v.get("word") or v.get("pattern"))
+        v["suggestions"] = await get_ai_suggestions(data.prompt, v)
 
     # Optional logging if not safe
     if result["status"] != "safe":
@@ -69,7 +101,7 @@ def analyze_prompt_route(data: AnalyzePromptRequest):
         "severity": get_severity(result["score"]),
         "violations": result["violations"],
         "prompt_type": classify_prompt_type(data.prompt),
-        "eval_time_ms": int((time.time() - start) * 1000)
+        "eval_time_ms": int((time.time() - start) * 1000),
     }
 
     return enriched_result

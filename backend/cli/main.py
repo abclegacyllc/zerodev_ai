@@ -10,12 +10,12 @@ Run:
 import argparse
 import asyncio
 from pathlib import Path
-from zerodev_ai.agents.scaffold_agent import scaffold_project
-from zerodev_ai.agents.codegen_agent import generate_code_from_spec
-from zerodev_ai.agents.ci_cd_agent import create_ci_cd_files
-from zerodev_ai.agents.deploy_agent import deploy_project
-from zerodev_ai.models.spec_model import ProjectSpec
-from zerodev_ai.version_engine.rollback import rollback_version
+from backend.agents.scaffold_agent import scaffold_project
+from backend.agents.codegen_agent import generate_code_from_spec
+from backend.agents.ci_cd_agent import create_ci_cd_files
+from backend.agents.deploy_agent import deploy_project
+from backend.models.spec_model import ProjectSpec
+from backend.version_engine.rollback import rollback_version
 import yaml
 
 def _build_parser() -> argparse.ArgumentParser:
