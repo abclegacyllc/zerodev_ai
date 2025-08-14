@@ -1,0 +1,57 @@
+name: Python Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    # Dockerfile lint
+    - name: Lint Dockerfile with hadolint
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: Dockerfile
+
+    # YAML lint (workflow + compose)
+    - name: Lint YAML
+      uses: ibiqlik/action-yamllint@v3
+      with:
+        file_or_dir: ".github/workflows docker-compose.yml"
+
+    # Python security SAST (Bandit) — pipx bilan, venvni iflos qilmaydi
+    - name: Bandit security scan
+      run: pipx run bandit -q -r .
+
+    # Secrets skaneri (Gitleaks)
+    - name: Gitleaks (secrets scan)
+      uses: gitleaks/gitleaks-action@v2
+      with:
+        args: detect --no-banner --redact --verbose
+
+    # SQL lint (postgres-init/*.sql)
+    - name: Lint SQL (sqlfluff)
+      run: |
+        pipx install sqlfluff
+        sqlfluff lint postgres-init/*.sql --dialect postgres
+
+    # This is a placeholder for the actual tests
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+    - name: Run tests
+      run: |
+        # command to run tests
+        echo "Tests would run here"
